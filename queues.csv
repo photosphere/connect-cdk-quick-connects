@@ -1,0 +1,4 @@
+Id,Arn,Name,QueueType
+043e7516-ddd4-4b8a-86b8-d6905f769cd0,arn:aws:connect:us-west-2:991727053196:instance/11a3d762-53cc-421e-8641-fd8923fa2f7f/queue/043e7516-ddd4-4b8a-86b8-d6905f769cd0,connect-lenovo-us-laptop Queue,STANDARD
+7fa419ac-7ee7-4265-8325-e903ed9a4cc8,arn:aws:connect:us-west-2:991727053196:instance/11a3d762-53cc-421e-8641-fd8923fa2f7f/queue/7fa419ac-7ee7-4265-8325-e903ed9a4cc8,BasicQueue,STANDARD
+c744491c-30a5-4799-ae58-597f193f5bd9,arn:aws:connect:us-west-2:991727053196:instance/11a3d762-53cc-421e-8641-fd8923fa2f7f/queue/c744491c-30a5-4799-ae58-597f193f5bd9,test1018 Queue,STANDARD
