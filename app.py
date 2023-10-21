@@ -7,7 +7,7 @@ from quick_connects.quick_connects_stack import QuickConnectsStack
 
 
 app = cdk.App()
-QuickConnectsStack(app, os.environ["quick_connects_name"],
+QuickConnectsStack(app, os.environ["quick_connects_name"], description="This is the template for creating quick connects and associate/disassociate quick connects with queues in Amazon Connect"
                    # If you don't specify 'env', this stack will be environment-agnostic.
                    # Account/Region-dependent features and context lookups will not work,
                    # but a single synthesized template can be deployed anywhere.
