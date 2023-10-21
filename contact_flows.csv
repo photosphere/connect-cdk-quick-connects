@@ -1,2 +1,0 @@
-Id,Arn,Name,ContactFlowType,ContactFlowState
-ecdaad2f-915f-4fa1-bd59-651ba2bed118,arn:aws:connect:us-west-2:991727053196:instance/11a3d762-53cc-421e-8641-fd8923fa2f7f/contact-flow/ecdaad2f-915f-4fa1-bd59-651ba2bed118,Default agent transfer,AGENT_TRANSFER,ACTIVE

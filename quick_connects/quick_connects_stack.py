@@ -17,20 +17,15 @@ import json
 from datetime import datetime
 
 
-# setting work dir
-# 需要填写绝对路径
-os.chdir('/Users/kangleie/Desktop/GitHub Code/connect-cdk-quick-connects-1020/connect-cdk-quick-connects-sample')
-
 connect_client = boto3.client("connect")
 
+st.set_page_config(
+    page_title="Amazon Connect Quick Connects Deployment Tool!", layout="wide")
+
 # app title
-col1, col2 = st.columns([1, 10])
-image = Image.open('./logo.png')
-with col1:
-    st.image(image, use_column_width='always')
-with col2:
-    header = f"Amazon Connect Quick Connects Deployment Tool!"
-    st.write(f"<h3 class='main-header'>{header}</h3>", unsafe_allow_html=True)
+st.header(f"Amazon Connect Quick Connects Deployment Tool!")
+
+connect_instance_id = ''
 
 if os.path.exists('connect.json'):
     with open('connect.json') as f:
@@ -43,22 +38,19 @@ tab1, tab2 = st.tabs(["Deployment", "Configuration"])
 with tab1:
     if os.path.exists('users.csv'):
         users = pd.read_csv("users.csv")
-        users = users.reindex(columns=['Username', 'Id', 'Arn'])
-        users_name_selected = st.multiselect('Users', users)
+        users_name_selected = st.multiselect('Users', users['Username'])
 
     if os.path.exists('contact_flows.csv'):
         contact_flows = pd.read_csv("contact_flows.csv")
-        contact_flows = contact_flows.reindex(
-            columns=['Name', 'Id', 'Arn', 'ContactFlowType', 'ContactFlowState'])
-        contact_flows_selected = st.selectbox('contact_flows', contact_flows)
+        contact_flows_selected = st.selectbox(
+            'contact_flows', contact_flows['Name'])
         contact_flows_arn_selected = contact_flows.loc[contact_flows['Name']
                                                        == contact_flows_selected, 'Arn'].iloc[0]
 
 with tab2:
     if os.path.exists('queues.csv'):
         queues = pd.read_csv("queues.csv")
-        queues = queues.reindex(columns=['Name', 'Id', 'Arn', 'QueueType'])
-        queues_name_selected = st.multiselect('Queues', queues)
+        queues_name_selected = st.multiselect('Queues', queues['Name'])
 
         connect_client = boto3.client("connect")
 
@@ -75,10 +67,8 @@ with tab2:
 
     if os.path.exists('quick_connects.csv'):
         quick_connects = pd.read_csv("quick_connects.csv")
-        quick_connects = quick_connects.reindex(
-            columns=['Name', 'Id', 'Arn', 'QuickConnectType'])
         quick_connects_name_selected = st.multiselect(
-            'quick_connects', quick_connects)
+            'quick_connects', quick_connects['Name'])
 
     col1, col2 = st.columns([2, 8])
     with col1:
@@ -123,43 +113,48 @@ with st.sidebar:
 
     # load env
     if st.button('Load Configuration'):
-        # connect configuration
-        connect_client = boto3.client("connect")
+        with st.spinner('Loading......'):
+            # connect configuration
+            res = connect_client.describe_instance(
+                InstanceId=connect_instance_id)
+            connect_filtered = {k: v for k, v in res['Instance'].items() if k in [
+                'Id', 'Arn']}
+            with open('connect.json', 'w') as f:
+                json.dump(connect_filtered, f)
 
-        res = connect_client.describe_instance(
-            InstanceId=connect_instance_id)
-        connect_filtered = {k: v for k, v in res['Instance'].items() if k in [
-            'Id', 'Arn']}
-        with open('connect.json', 'w') as f:
-            json.dump(connect_filtered, f)
+            # queues
+            res = connect_client.list_queues(InstanceId=connect_instance_id, QueueTypes=[
+                'STANDARD'])
 
-        # queues
-        res = connect_client.list_queues(InstanceId=connect_instance_id, QueueTypes=[
-            'STANDARD'])
+            df = pd.DataFrame(res['QueueSummaryList'])
+            if len(df) > 0:
+                df.to_csv("queues.csv", index=False)
 
-        queues_df = pd.DataFrame(res['QueueSummaryList'])
-        queues_df.to_csv("queues.csv", index=False)
+            # quick connects
+            res = connect_client.list_quick_connects(InstanceId=connect_instance_id, QuickConnectTypes=[
+                'USER'])
 
-        # quick connects
-        res = connect_client.list_quick_connects(InstanceId=connect_instance_id, QuickConnectTypes=[
-            'USER'])
+            df = pd.DataFrame(res['QuickConnectSummaryList'])
+            if len(df) > 0:
+                df.to_csv("quick_connects.csv", index=False)
 
-        quick_connects_df = pd.DataFrame(res['QuickConnectSummaryList'])
-        quick_connects_df.to_csv("quick_connects.csv", index=False)
+            # users
+            res = connect_client.list_users(
+                InstanceId=connect_instance_id)
+            df = pd.DataFrame(res['UserSummaryList'])
+            if len(df) > 0:
+                df.to_csv("users.csv", index=False)
 
-        # users
-        res = connect_client.list_users(
-            InstanceId=connect_instance_id)
-        users_df = pd.DataFrame(res['UserSummaryList'])
-        users_df.to_csv("users.csv", index=False)
+            # contact flows
+            res = connect_client.list_contact_flows(
+                InstanceId=connect_instance_id, ContactFlowTypes=[
+                    'AGENT_TRANSFER',
+                ])
+            df = pd.DataFrame(res['ContactFlowSummaryList'])
+            if len(df) > 0:
+                df.to_csv("contact_flows.csv", index=False)
 
-        # contact flows
-        res = connect_client.list_contact_flows(
-            InstanceId=connect_instance_id, ContactFlowTypes=[
-                'AGENT_TRANSFER',
-            ])
-        contact_flows_df = pd.DataFrame(res['ContactFlowSummaryList'])
-        contact_flows_df.to_csv("contact_flows.csv", index=False)
+            st.success("Configuration loaded!")
 
     # stack name
     quick_connects_name = st.text_input('Quick Connects Name (Required)')
@@ -220,12 +215,12 @@ with st.sidebar:
                     time.sleep(5)
                     res = cfm_client.describe_stacks()
                     stacks = [i['StackName'] for i in res['Stacks']]
-                    if os.environ["tenant_name"] not in stacks:
+                    if os.environ["quick_connects_name"] not in stacks:
                         st.success('Destroy complete!')
                         break
                     else:
                         res = cfm_client.describe_stacks(
-                            StackName=os.environ["tenant_name"])
+                            StackName=os.environ["quick_connects_name"])
                         status = res['Stacks'][0]['StackStatus']
                         if status == 'DELETE_FAILED':
                             st.error(
@@ -237,7 +232,7 @@ with st.sidebar:
                 st.error('Failed')
 
 
-class ConnectCdkQuickConnectsSampleStack(Stack):
+class QuickConnectsStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)

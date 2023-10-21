@@ -1,6 +1,0 @@
-Id,Arn,Username
-2603e4b5-c547-4d2d-876b-5f57c77967b9,arn:aws:connect:us-west-2:991727053196:instance/11a3d762-53cc-421e-8641-fd8923fa2f7f/agent/2603e4b5-c547-4d2d-876b-5f57c77967b9,eva_li
-40fa9cb1-d999-4421-956d-af56bb745414,arn:aws:connect:us-west-2:991727053196:instance/11a3d762-53cc-421e-8641-fd8923fa2f7f/agent/40fa9cb1-d999-4421-956d-af56bb745414,richard_wang
-57396c2c-4246-4af2-a872-c8a658e4d150,arn:aws:connect:us-west-2:991727053196:instance/11a3d762-53cc-421e-8641-fd8923fa2f7f/agent/57396c2c-4246-4af2-a872-c8a658e4d150,test_admin
-da192e64-bb9c-49af-9d2a-927e2bd8c7d0,arn:aws:connect:us-west-2:991727053196:instance/11a3d762-53cc-421e-8641-fd8923fa2f7f/agent/da192e64-bb9c-49af-9d2a-927e2bd8c7d0,andy_wang
-e5f38d78-dae8-4128-ae16-8a0ef7698a39,arn:aws:connect:us-west-2:991727053196:instance/11a3d762-53cc-421e-8641-fd8923fa2f7f/agent/e5f38d78-dae8-4128-ae16-8a0ef7698a39,michael_li
