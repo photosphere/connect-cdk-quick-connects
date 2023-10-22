@@ -88,7 +88,8 @@ tab1, tab2 = st.tabs(["Deployment", "Configuration"])
 with tab1:
     if load_button or os.path.exists('users.csv'):
         users = pd.read_csv("users.csv")
-        users_name_selected = st.multiselect('Users', users['Username'])
+        sorted_users = users.sort_values(by=["Username"], ascending=True)
+        users_name_selected = st.multiselect('Users', sorted_users['Username'])
 
     if load_button or os.path.exists('contact_flows.csv'):
         contact_flows = pd.read_csv("contact_flows.csv")
@@ -117,12 +118,15 @@ with tab2:
 
     if os.path.exists('quick_connects.csv'):
         quick_connects = pd.read_csv("quick_connects.csv")
+        sorted_quick_connects = quick_connects.sort_values(
+            by=["Name"], ascending=True)
         quick_connects_name_selected = st.multiselect(
-            'quick_connects', quick_connects['Name'])
+            'quick_connects', sorted_quick_connects['Name'])
 
     col1, col2 = st.columns([2, 8])
     with col1:
-        if st.button('Associate'):
+        associate_button = st.button('Associate')
+        if associate_button:
 
             queues_selected = queues[queues['Name'].isin(queues_name_selected)]
             queues_selected.to_csv('queues_selected.csv', index=False)
@@ -139,10 +143,10 @@ with tab2:
                     QueueId=row['Id'],
                     QuickConnectIds=quick_connects_Id_selected
                 )
-            st.success('Associate Successfully!')
 
     with col2:
-        if st.button('Disassociate All'):
+        disassociate_button = st.button('Disassociate')
+        if disassociate_button:
             for index, row in queues_selected.iterrows():
                 res = connect_client.list_queue_quick_connects(
                     InstanceId=connect_instance_id,
@@ -153,7 +157,12 @@ with tab2:
 
                 connect_client.disassociate_queue_quick_connects(InstanceId=connect_instance_id,
                                                                  QueueId=row['Id'], QuickConnectIds=queue_quick_connects_df['Id'].tolist())
-                st.success('Disassociate Successfully!')
+
+    if associate_button:
+        st.success('Associate Successfully!')
+
+    if disassociate_button:
+        st.success('Disassociate Successfully!')
 
 
 with st.sidebar:
