@@ -48,4 +48,6 @@ streamlit run quick_connects/quick_connects_stack.py
 
 #### Configuration screenshot
 <img width="1557" alt="configure_screenshot" src="https://github.com/photosphere/connect-cdk-quick-connects/assets/3398595/9b41f373-851f-4f86-ac3b-76dc3de5287d">
-```
+
+#### Cloudformation screenshot
+<img width="1360" alt="quick-connects-stack" src="https://github.com/photosphere/connect-cdk-quick-connects/assets/3398595/9c2814a9-ba3f-4ba9-b417-1645843d78ee">
