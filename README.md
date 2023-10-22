@@ -48,7 +48,7 @@ In a Windows terminal it's
 Then you should install the local requirements
 
 ```bash
-pip install -r requirements_local.txt
+pip install -r requirements.txt
 ```
 
 Install streamlit

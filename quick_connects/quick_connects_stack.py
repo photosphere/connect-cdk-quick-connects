@@ -33,14 +33,64 @@ if os.path.exists('connect.json'):
         connect_instance_id = connect_data['Id']
         connect_instance_arn = connect_data['Arn']
 
+# connect configuration
+connect_instance_id = st.text_input(
+    'Connect Instance Id', value=connect_instance_id)
+
+# load env
+load_button = st.button('Load Configuration')
+if load_button:
+    with st.spinner('Loading......'):
+        # connect configuration
+        res = connect_client.describe_instance(
+            InstanceId=connect_instance_id)
+        connect_filtered = {k: v for k, v in res['Instance'].items() if k in [
+            'Id', 'Arn']}
+        with open('connect.json', 'w') as f:
+            json.dump(connect_filtered, f)
+
+        # queues
+        res = connect_client.list_queues(InstanceId=connect_instance_id, QueueTypes=[
+            'STANDARD'])
+
+        df = pd.DataFrame(res['QueueSummaryList'])
+        if len(df) > 0:
+            df.to_csv("queues.csv", index=False)
+
+        # quick connects
+        res = connect_client.list_quick_connects(InstanceId=connect_instance_id, QuickConnectTypes=[
+            'USER'])
+
+        df = pd.DataFrame(res['QuickConnectSummaryList'])
+        if len(df) > 0:
+            df.to_csv("quick_connects.csv", index=False)
+
+        # users
+        res = connect_client.list_users(
+            InstanceId=connect_instance_id)
+        df = pd.DataFrame(res['UserSummaryList'])
+        if len(df) > 0:
+            df.to_csv("users.csv", index=False)
+
+        # contact flows
+        res = connect_client.list_contact_flows(
+            InstanceId=connect_instance_id, ContactFlowTypes=[
+                'AGENT_TRANSFER',
+            ])
+        df = pd.DataFrame(res['ContactFlowSummaryList'])
+        if len(df) > 0:
+            df.to_csv("contact_flows.csv", index=False)
+
+        st.success("Configuration loaded!")
+
 tab1, tab2 = st.tabs(["Deployment", "Configuration"])
 
 with tab1:
-    if os.path.exists('users.csv'):
+    if load_button or os.path.exists('users.csv'):
         users = pd.read_csv("users.csv")
         users_name_selected = st.multiselect('Users', users['Username'])
 
-    if os.path.exists('contact_flows.csv'):
+    if load_button or os.path.exists('contact_flows.csv'):
         contact_flows = pd.read_csv("contact_flows.csv")
         contact_flows_selected = st.selectbox(
             'contact_flows', contact_flows['Name'])
@@ -48,7 +98,7 @@ with tab1:
                                                        == contact_flows_selected, 'Arn'].iloc[0]
 
 with tab2:
-    if os.path.exists('queues.csv'):
+    if load_button or os.path.exists('queues.csv'):
         queues = pd.read_csv("queues.csv")
         queues_name_selected = st.multiselect('Queues', queues['Name'])
 
@@ -107,54 +157,6 @@ with tab2:
 
 
 with st.sidebar:
-    # connect configuration
-    connect_instance_id = st.text_input(
-        'Connect Instance Id', value=connect_instance_id)
-
-    # load env
-    if st.button('Load Configuration'):
-        with st.spinner('Loading......'):
-            # connect configuration
-            res = connect_client.describe_instance(
-                InstanceId=connect_instance_id)
-            connect_filtered = {k: v for k, v in res['Instance'].items() if k in [
-                'Id', 'Arn']}
-            with open('connect.json', 'w') as f:
-                json.dump(connect_filtered, f)
-
-            # queues
-            res = connect_client.list_queues(InstanceId=connect_instance_id, QueueTypes=[
-                'STANDARD'])
-
-            df = pd.DataFrame(res['QueueSummaryList'])
-            if len(df) > 0:
-                df.to_csv("queues.csv", index=False)
-
-            # quick connects
-            res = connect_client.list_quick_connects(InstanceId=connect_instance_id, QuickConnectTypes=[
-                'USER'])
-
-            df = pd.DataFrame(res['QuickConnectSummaryList'])
-            if len(df) > 0:
-                df.to_csv("quick_connects.csv", index=False)
-
-            # users
-            res = connect_client.list_users(
-                InstanceId=connect_instance_id)
-            df = pd.DataFrame(res['UserSummaryList'])
-            if len(df) > 0:
-                df.to_csv("users.csv", index=False)
-
-            # contact flows
-            res = connect_client.list_contact_flows(
-                InstanceId=connect_instance_id, ContactFlowTypes=[
-                    'AGENT_TRANSFER',
-                ])
-            df = pd.DataFrame(res['ContactFlowSummaryList'])
-            if len(df) > 0:
-                df.to_csv("contact_flows.csv", index=False)
-
-            st.success("Configuration loaded!")
 
     # stack name
     quick_connects_name = st.text_input('Quick Connects Name (Required)')
