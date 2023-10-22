@@ -27,22 +27,10 @@ python -m venv .venv
 
 and activate the environment.
 
-On Linux, OsX or in a Windows Git Bash terminal it's
-
-```bash
-source .venv/Scripts/activate
-```
-
-or alternatively
+On Linux, or OsX 
 
 ```bash
 source .venv/bin/activate
-```
-
-In a Windows terminal it's
-
-```bash
-.venv/Scripts/activate.bat
 ```
 
 Then you should install the local requirements
@@ -51,11 +39,6 @@ Then you should install the local requirements
 pip install -r requirements.txt
 ```
 
-Install streamlit
-
-```bash
-pip install streamlit
-```
 
 ### Build and run the Application Locally
 
