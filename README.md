@@ -32,6 +32,11 @@ On Linux, or OsX
 ```bash
 source .venv/bin/activate
 ```
+On Windows
+
+```bash
+source.bat
+```
 
 Then you should install the local requirements
 
