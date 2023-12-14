@@ -42,61 +42,71 @@ load_button = st.button('Load Configuration')
 if load_button:
     with st.spinner('Loading......'):
         # connect configuration
-        res = connect_client.describe_instance(
-            InstanceId=connect_instance_id)
-        connect_filtered = {k: v for k, v in res['Instance'].items() if k in [
-            'Id', 'Arn']}
-        with open('connect.json', 'w') as f:
-            json.dump(connect_filtered, f)
+        try:
+            res = connect_client.describe_instance(
+                InstanceId=connect_instance_id)
+            connect_filtered = {k: v for k, v in res['Instance'].items() if k in [
+                'Id', 'Arn']}
+            with open('connect.json', 'w') as f:
+                json.dump(connect_filtered, f)
 
-        # queues
-        res = connect_client.list_queues(InstanceId=connect_instance_id, QueueTypes=[
-            'STANDARD'])
+            # queues
+            res = connect_client.list_queues(InstanceId=connect_instance_id, QueueTypes=[
+                'STANDARD'])
 
-        df = pd.DataFrame(res['QueueSummaryList'])
-        if len(df) > 0:
-            df.to_csv("queues.csv", index=False)
+            df = pd.DataFrame(res['QueueSummaryList'])
+            if len(df) > 0:
+                df.to_csv("queues.csv", index=False)
 
-        # quick connects
-        res = connect_client.list_quick_connects(InstanceId=connect_instance_id, QuickConnectTypes=[
-            'USER'])
+            # quick connects
+            res = connect_client.list_quick_connects(InstanceId=connect_instance_id, QuickConnectTypes=[
+                'USER'])
 
-        df = pd.DataFrame(res['QuickConnectSummaryList'])
-        if len(df) > 0:
-            df.to_csv("quick_connects.csv", index=False)
+            df = pd.DataFrame(res['QuickConnectSummaryList'])
+            if len(df) > 0:
+                df.to_csv("quick_connects.csv", index=False)
 
-        # users
-        res = connect_client.list_users(
-            InstanceId=connect_instance_id)
-        df = pd.DataFrame(res['UserSummaryList'])
-        if len(df) > 0:
-            df.to_csv("users.csv", index=False)
+            # users
+            res = connect_client.list_users(
+                InstanceId=connect_instance_id)
+            df = pd.DataFrame(res['UserSummaryList'])
+            if len(df) > 0:
+                df.to_csv("users.csv", index=False)
 
-        # contact flows
-        res = connect_client.list_contact_flows(
-            InstanceId=connect_instance_id, ContactFlowTypes=[
-                'AGENT_TRANSFER',
-            ])
-        df = pd.DataFrame(res['ContactFlowSummaryList'])
-        if len(df) > 0:
-            df.to_csv("contact_flows.csv", index=False)
+            # contact flows
+            res = connect_client.list_contact_flows(
+                InstanceId=connect_instance_id, ContactFlowTypes=[
+                    'AGENT_TRANSFER',
+                ])
+            df = pd.DataFrame(res['ContactFlowSummaryList'])
+            if len(df) > 0:
+                df.to_csv("contact_flows.csv", index=False)
 
-        st.success("Configuration loaded!")
+            st.success("Configuration loaded!")
+        except Exception as e:
+            st.error('Load Configuration Failed')
 
 tab1, tab2 = st.tabs(["Deployment", "Configuration"])
 
 with tab1:
     if load_button or os.path.exists('users.csv'):
-        users = pd.read_csv("users.csv")
-        sorted_users = users.sort_values(by=["Username"], ascending=True)
-        users_name_selected = st.multiselect('Users', sorted_users['Username'])
+        if os.path.exists('users.csv'):
+            users = pd.read_csv("users.csv")
+            sorted_users = users.sort_values(by=["Username"], ascending=True)
+            users_name_selected = st.multiselect(
+                'Users', sorted_users['Username'])
+        else:
+            users_name_selected = st.multiselect('Users')
 
     if load_button or os.path.exists('contact_flows.csv'):
-        contact_flows = pd.read_csv("contact_flows.csv")
-        contact_flows_selected = st.selectbox(
-            'contact_flows', contact_flows['Name'])
-        contact_flows_arn_selected = contact_flows.loc[contact_flows['Name']
-                                                       == contact_flows_selected, 'Arn'].iloc[0]
+        if os.path.exists('contact_flows.csv'):
+            contact_flows = pd.read_csv("contact_flows.csv")
+            contact_flows_selected = st.selectbox(
+                'contact_flows', contact_flows['Name'])
+            contact_flows_arn_selected = contact_flows.loc[contact_flows['Name']
+                                                           == contact_flows_selected, 'Arn'].iloc[0]
+        else:
+            contact_flows_selected = st.selectbox('contact_flows')
 
 with tab2:
     if load_button or os.path.exists('queues.csv'):
@@ -187,7 +197,21 @@ with st.sidebar:
     # deploy cdk
     st.subheader('CDK Deployment', divider="rainbow")
     if st.button('Deploy CDK Stack'):
-        subprocess.Popen(['cdk', 'deploy'])
+        try:
+            p = subprocess.Popen(['cdk', 'deploy'])
+            out, err = p.communicate()
+        except OSError as e:
+            print("Exception while running subprocess: ", e)
+        except ValueError as e:
+            print("Invalid arguments: ", e)
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+        else:
+            if out:
+                print(out.decode('utf-8'))
+            if err:
+                print(err.decode('utf-8'), file=sys.stderr)
+
         st.write('CDK stack initialized...........')
         time.sleep(5)
         with st.spinner('Deploying......'):
@@ -211,12 +235,26 @@ with st.sidebar:
                         else:
                             continue
             except Exception as e:
-                st.error('Failed')
+                st.error('Deploy Failed')
 
     # destroy cdk
     st.subheader('Clean Resources', divider="rainbow")
     if st.button('Destroy CDK Stack'):
-        subprocess.Popen(['cdk', 'destroy', '--force'])
+        try:
+            p = subprocess.Popen(['cdk', 'destroy', '--force'])
+            out, err = p.communicate()
+        except OSError as e:
+            print("Exception while running subprocess: ", e)
+        except ValueError as e:
+            print("Invalid arguments: ", e)
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+        else:
+            if out:
+                print(out.decode('utf-8'))
+            if err:
+                print(err.decode('utf-8'), file=sys.stderr)
+
         st.write('Destroying CDK stack...........')
         time.sleep(5)
         with st.spinner('Destroying......'):
