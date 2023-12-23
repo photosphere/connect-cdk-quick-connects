@@ -93,6 +93,21 @@ with tab1:
         if os.path.exists('users.csv'):
             users = pd.read_csv("users.csv")
             sorted_users = users.sort_values(by=["Username"], ascending=True)
+
+            hide_button = st.checkbox(
+                'Hide Users with Quick Connect Already Added')
+            if hide_button:
+                res = connect_client.list_quick_connects(
+                    InstanceId=connect_instance_id, QuickConnectTypes=[
+                        'USER'
+                    ])
+                quick_connects_df = pd.DataFrame(
+                    res['QuickConnectSummaryList'])
+
+                mask = sorted_users['Username'].isin(quick_connects_df['Name'])
+                rows_to_remove = sorted_users[mask]
+                sorted_users.drop(index=rows_to_remove.index, inplace=True)
+
             users_name_selected = st.multiselect(
                 'Users', sorted_users['Username'])
         else:
@@ -112,8 +127,6 @@ with tab2:
     if load_button or os.path.exists('queues.csv'):
         queues = pd.read_csv("queues.csv")
         queues_name_selected = st.multiselect('Queues', queues['Name'])
-
-        connect_client = boto3.client("connect")
 
         queues_selected = queues[queues['Name'].isin(queues_name_selected)]
         for index, row in queues_selected.iterrows():
