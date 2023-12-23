@@ -1,6 +1,12 @@
 ## About Amazon Connect Quick Connects CDK
 This solution can be used to create quick connects and associate/disassociate these with queues.
 
+### Requirements
+
+1.[AWS CDK 2.100.0 installed](https://docs.aws.amazon.com/cdk/v2/guide/home.html)
+
+2.[NodeJS 14.x installed](https://nodejs.org/en/download/)
+
 ### Installation
 
 Clone the repo
