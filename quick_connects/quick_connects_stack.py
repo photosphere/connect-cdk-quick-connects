@@ -124,6 +124,10 @@ with tab2:
             queue_quick_connects_df = pd.DataFrame(
                 res['QuickConnectSummaryList'])
             st.write(row['Name'])
+            queue_quick_connects_df = queue_quick_connects_df.sort_values(by=[
+                                                                          'Name'])
+            queue_quick_connects_df = queue_quick_connects_df.reset_index(
+                drop=True)
             st.write(queue_quick_connects_df)
 
     if os.path.exists('quick_connects.csv'):
@@ -132,10 +136,14 @@ with tab2:
             by=["Name"], ascending=True)
         quick_connects_name_selected = st.multiselect(
             'quick_connects', sorted_quick_connects['Name'])
+        quick_connects_name_selected_num = len(quick_connects_name_selected)
+        st.write("Selected Quick Connects:" +
+                 str(quick_connects_name_selected_num)+' (*More than 50 Quick Connects Cannot be Selected at A Time*)')
 
     col1, col2 = st.columns([2, 8])
     with col1:
-        associate_button = st.button('Associate')
+        associate_button = st.button('Associate', disabled=(
+            quick_connects_name_selected_num > 50))
         if associate_button:
 
             queues_selected = queues[queues['Name'].isin(queues_name_selected)]
