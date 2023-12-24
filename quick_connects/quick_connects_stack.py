@@ -113,15 +113,19 @@ with tab1:
         else:
             users_name_selected = st.multiselect('Users')
 
+        users_name_selected_num = len(users_name_selected)
+        st.write("Selected Users:" +
+                 str(users_name_selected_num)+' (*More than 50 Users Cannot be Selected at A Time*)')
+
     if load_button or os.path.exists('contact_flows.csv'):
         if os.path.exists('contact_flows.csv'):
             contact_flows = pd.read_csv("contact_flows.csv")
             contact_flows_selected = st.selectbox(
-                'contact_flows', contact_flows['Name'])
+                'Contact Flows', contact_flows['Name'])
             contact_flows_arn_selected = contact_flows.loc[contact_flows['Name']
                                                            == contact_flows_selected, 'Arn'].iloc[0]
         else:
-            contact_flows_selected = st.selectbox('contact_flows')
+            contact_flows_selected = st.selectbox('Contact Flows')
 
 with tab2:
     if load_button or os.path.exists('queues.csv'):
@@ -148,7 +152,7 @@ with tab2:
         sorted_quick_connects = quick_connects.sort_values(
             by=["Name"], ascending=True)
         quick_connects_name_selected = st.multiselect(
-            'quick_connects', sorted_quick_connects['Name'])
+            'Quick Connects', sorted_quick_connects['Name'])
         quick_connects_name_selected_num = len(quick_connects_name_selected)
         st.write("Selected Quick Connects:" +
                  str(quick_connects_name_selected_num)+' (*More than 50 Quick Connects Cannot be Selected at A Time*)')
