@@ -54,6 +54,12 @@ pip install -r requirements.txt
 ```bash
 streamlit run quick_connects/quick_connects_stack.py
 ```
+### Or Build and run the Application on Cloud9
+
+```bash
+streamlit run quick_connects/quick_connects_stack.py --server.port 8080 --server.address=0.0.0.0 
+```
+
 #### Deployment screenshot
 <img width="1573" alt="deploy_screenshot" src="https://github.com/photosphere/connect-cdk-quick-connects/assets/3398595/375df2db-d4ee-40c4-91b9-816448dcfe90">
 
