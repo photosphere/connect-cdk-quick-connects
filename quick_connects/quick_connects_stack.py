@@ -147,6 +147,7 @@ with tab2:
                 drop=True)
             st.write(queue_quick_connects_df)
 
+    quick_connects_name_selected_num = 0
     if os.path.exists('quick_connects.csv'):
         quick_connects = pd.read_csv("quick_connects.csv")
         sorted_quick_connects = quick_connects.sort_values(
