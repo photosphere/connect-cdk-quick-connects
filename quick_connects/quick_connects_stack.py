@@ -104,9 +104,11 @@ with tab1:
                 quick_connects_df = pd.DataFrame(
                     res['QuickConnectSummaryList'])
 
-                mask = sorted_users['Username'].isin(quick_connects_df['Name'])
-                rows_to_remove = sorted_users[mask]
-                sorted_users.drop(index=rows_to_remove.index, inplace=True)
+                if len(quick_connects_df) > 0:
+                    mask = sorted_users['Username'].isin(
+                        quick_connects_df['Name'])
+                    rows_to_remove = sorted_users[mask]
+                    sorted_users.drop(index=rows_to_remove.index, inplace=True)
 
             users_name_selected = st.multiselect(
                 'Users', sorted_users['Username'])
