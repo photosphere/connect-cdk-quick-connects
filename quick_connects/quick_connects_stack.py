@@ -142,12 +142,13 @@ with tab2:
             )
             queue_quick_connects_df = pd.DataFrame(
                 res['QuickConnectSummaryList'])
-            st.write(row['Name'])
-            queue_quick_connects_df = queue_quick_connects_df.sort_values(by=[
-                                                                          'Name'])
-            queue_quick_connects_df = queue_quick_connects_df.reset_index(
-                drop=True)
-            st.write(queue_quick_connects_df)
+            if len(queue_quick_connects_df) > 0:
+                st.write(row['Name'])
+                queue_quick_connects_df = queue_quick_connects_df.sort_values(by=[
+                    'Name'])
+                queue_quick_connects_df = queue_quick_connects_df.reset_index(
+                    drop=True)
+                st.write(queue_quick_connects_df)
 
     quick_connects_name_selected_num = 0
     if os.path.exists('quick_connects.csv'):
