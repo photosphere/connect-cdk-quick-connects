@@ -60,23 +60,26 @@ if load_button:
                 'STANDARD'], MaxResults=max_results)
 
             df = pd.DataFrame(res['QueueSummaryList'])
+            sorted_df = df.sort_values(by=["Name"], ascending=True)
             if len(df) > 0:
-                df.to_csv("queues.csv", index=False)
+                sorted_df.to_csv("queues.csv", index=False)
 
             # quick connects
             res = connect_client.list_quick_connects(InstanceId=connect_instance_id, QuickConnectTypes=[
                 'USER'], MaxResults=max_results)
 
             df = pd.DataFrame(res['QuickConnectSummaryList'])
+            sorted_df = df.sort_values(by=["Name"], ascending=True)
             if len(df) > 0:
-                df.to_csv("quick_connects.csv", index=False)
+                sorted_df.to_csv("quick_connects.csv", index=False)
 
             # users
             res = connect_client.list_users(
                 InstanceId=connect_instance_id, MaxResults=max_results)
             df = pd.DataFrame(res['UserSummaryList'])
+            sorted_df = df.sort_values(by=["Username"], ascending=True)
             if len(df) > 0:
-                df.to_csv("users.csv", index=False)
+                sorted_df.to_csv("users.csv", index=False)
 
             # contact flows
             res = connect_client.list_contact_flows(
@@ -99,24 +102,20 @@ with tab1:
             users = pd.read_csv("users.csv")
             sorted_users = users.sort_values(by=["Username"], ascending=True)
 
+            quick_connects = pd.read_csv("quick_connects.csv")
+
             hide_button = st.checkbox(
                 'Hide Users with Quick Connect Already Added')
             if hide_button:
-                res = connect_client.list_quick_connects(
-                    InstanceId=connect_instance_id, QuickConnectTypes=[
-                        'USER'
-                    ])
-                quick_connects_df = pd.DataFrame(
-                    res['QuickConnectSummaryList'])
-
-                if len(quick_connects_df) > 0:
+                if len(quick_connects) > 0:
                     mask = sorted_users['Username'].isin(
-                        quick_connects_df['Name'])
+                        quick_connects['Name'])
                     rows_to_remove = sorted_users[mask]
                     sorted_users.drop(index=rows_to_remove.index, inplace=True)
 
+            user_label = 'Users('+str(len(sorted_users))+')'
             users_name_selected = st.multiselect(
-                'Users', sorted_users['Username'])
+                user_label, sorted_users['Username'])
         else:
             users_name_selected = st.multiselect('Users')
 
@@ -127,8 +126,9 @@ with tab1:
     if load_button or os.path.exists('contact_flows.csv'):
         if os.path.exists('contact_flows.csv'):
             contact_flows = pd.read_csv("contact_flows.csv")
+            contact_flows_label = 'Contact Flows('+str(len(contact_flows))+')'
             contact_flows_selected = st.selectbox(
-                'Contact Flows', contact_flows['Name'])
+                contact_flows_label, contact_flows['Name'])
             contact_flows_arn_selected = contact_flows.loc[contact_flows['Name']
                                                            == contact_flows_selected, 'Arn'].iloc[0]
         else:
@@ -137,7 +137,8 @@ with tab1:
 with tab2:
     if load_button or os.path.exists('queues.csv'):
         queues = pd.read_csv("queues.csv")
-        queues_name_selected = st.multiselect('Queues', queues['Name'])
+        queues_label = 'Queues('+str(len(queues))+')'
+        queues_name_selected = st.multiselect(queues_label, queues['Name'])
 
         queues_selected = queues[queues['Name'].isin(queues_name_selected)]
         for index, row in queues_selected.iterrows():
@@ -160,8 +161,10 @@ with tab2:
         quick_connects = pd.read_csv("quick_connects.csv")
         sorted_quick_connects = quick_connects.sort_values(
             by=["Name"], ascending=True)
+        quick_connects_label = 'Quick Connects(' + \
+            str(len(sorted_quick_connects))+')'
         quick_connects_name_selected = st.multiselect(
-            'Quick Connects', sorted_quick_connects['Name'])
+            quick_connects_label, sorted_quick_connects['Name'])
         quick_connects_name_selected_num = len(quick_connects_name_selected)
         st.write("Selected Quick Connects:" +
                  str(quick_connects_name_selected_num)+' (*More than 50 Quick Connects Cannot be Selected at A Time*)')
