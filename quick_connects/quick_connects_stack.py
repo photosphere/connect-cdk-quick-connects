@@ -104,6 +104,9 @@ with tab1:
 
             quick_connects = pd.read_csv("quick_connects.csv")
 
+            st.write('Users:'+str(len(users)))
+            st.write('Quick Connects:'+str(len(quick_connects)))
+
             hide_button = st.checkbox(
                 'Hide Users with Quick Connect Already Added')
             if hide_button:
@@ -111,6 +114,8 @@ with tab1:
                     mask = sorted_users['Username'].isin(
                         quick_connects['Name'])
                     rows_to_remove = sorted_users[mask]
+                    st.write('Users with Quick Connects Added:' +
+                             str(len(rows_to_remove)))
                     sorted_users.drop(index=rows_to_remove.index, inplace=True)
 
             user_label = 'Users('+str(len(sorted_users))+')'
@@ -119,9 +124,8 @@ with tab1:
         else:
             users_name_selected = st.multiselect('Users')
 
-        users_name_selected_num = len(users_name_selected)
         st.write("Selected Users:" +
-                 str(users_name_selected_num)+' (*More than 50 Users Cannot be Selected at A Time*)')
+                 str(len(users_name_selected))+' (*More than 50 Users Cannot be Selected at A Time*)')
 
     if load_button or os.path.exists('contact_flows.csv'):
         if os.path.exists('contact_flows.csv'):
