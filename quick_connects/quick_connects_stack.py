@@ -37,6 +37,11 @@ if os.path.exists('connect.json'):
 connect_instance_id = st.text_input(
     'Connect Instance Id', value=connect_instance_id)
 
+# max item
+max_results = st.number_input(
+    "Queues/QuickConnects/Users Max Results", value=200)
+
+
 # load env
 load_button = st.button('Load Configuration')
 if load_button:
@@ -52,7 +57,7 @@ if load_button:
 
             # queues
             res = connect_client.list_queues(InstanceId=connect_instance_id, QueueTypes=[
-                'STANDARD'])
+                'STANDARD'], MaxResults=max_results)
 
             df = pd.DataFrame(res['QueueSummaryList'])
             if len(df) > 0:
@@ -60,7 +65,7 @@ if load_button:
 
             # quick connects
             res = connect_client.list_quick_connects(InstanceId=connect_instance_id, QuickConnectTypes=[
-                'USER'])
+                'USER'], MaxResults=max_results)
 
             df = pd.DataFrame(res['QuickConnectSummaryList'])
             if len(df) > 0:
@@ -68,7 +73,7 @@ if load_button:
 
             # users
             res = connect_client.list_users(
-                InstanceId=connect_instance_id)
+                InstanceId=connect_instance_id, MaxResults=max_results)
             df = pd.DataFrame(res['UserSummaryList'])
             if len(df) > 0:
                 df.to_csv("users.csv", index=False)
