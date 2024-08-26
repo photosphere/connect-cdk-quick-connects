@@ -1,16 +1,21 @@
+from aws_cdk import (
+    # Duration,
+    Stack,
+    CfnTag
+    # aws_sqs as sqs,
+)
+from constructs import Construct
+from aws_cdk import aws_connect as connect
 import os
 import subprocess
+import streamlit as st
+import pandas as pd
+import boto3
 import sys
 import time
+from PIL import Image
 import json
 from datetime import datetime
-
-import boto3
-import pandas as pd
-import streamlit as st
-from aws_cdk import Stack
-from aws_cdk import aws_connect as connect
-from constructs import Construct
 
 # Constants
 MAX_SELECTABLE_USERS = 50
@@ -227,64 +232,87 @@ with st.sidebar:
 
     st.subheader('CDK Deployment', divider="rainbow")
     if st.button('Deploy CDK Stack'):
-        deploy_cdk_stack()
+        try:
+            p = subprocess.Popen(['cdk', 'deploy'])
+            out, err = p.communicate()
+        except OSError as e:
+            print("Exception while running subprocess: ", e)
+        except ValueError as e:
+            print("Invalid arguments: ", e)
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+        else:
+            if out:
+                print(out.decode('utf-8'))
+            if err:
+                print(err.decode('utf-8'), file=sys.stderr)
+
+        st.write('CDK stack initialized...........')
+        time.sleep(5)
+        with st.spinner('Deploying......'):
+            cfm_client = boto3.client("cloudformation")
+            try:
+                while True:
+                    time.sleep(5)
+                    res = cfm_client.describe_stacks()
+                    stacks = [i['StackName'] for i in res['Stacks']]
+                    if os.environ["quick_connects_name"] in stacks:
+                        res = cfm_client.describe_stacks(
+                            StackName=os.environ["quick_connects_name"])
+                        status = res['Stacks'][0]['StackStatus']
+                        if status == 'CREATE_COMPLETE':
+                            st.success('Deploy complete!')
+                            break
+                        elif status in ['CREATE_FAILED', 'ROLLBACK_COMPLETE']:
+                            st.error(
+                                'Deploy failed, please check CloudFormation event for detailed messages.')
+                            break
+                        else:
+                            continue
+            except Exception as e:
+                st.error('Deploy Failed')
 
     st.subheader('Clean Resources', divider="rainbow")
     if st.button('Destroy CDK Stack'):
-        destroy_cdk_stack()
+        try:
+            p = subprocess.Popen(['cdk', 'destroy', '--force'])
+            out, err = p.communicate()
+        except OSError as e:
+            print("Exception while running subprocess: ", e)
+        except ValueError as e:
+            print("Invalid arguments: ", e)
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+        else:
+            if out:
+                print(out.decode('utf-8'))
+            if err:
+                print(err.decode('utf-8'), file=sys.stderr)
 
-# Helper functions for CDK operations
-
-
-def run_subprocess(command):
-    try:
-        p = subprocess.Popen(command)
-        out, err = p.communicate()
-        if out:
-            print(out.decode('utf-8'))
-        if err:
-            print(err.decode('utf-8'), file=sys.stderr)
-    except Exception as e:
-        print(f"Error running subprocess: {str(e)}")
-
-
-def wait_for_stack_operation(operation, success_status, failure_statuses):
-    try:
-        while True:
-            time.sleep(5)
-            res = cfm_client.describe_stacks()
-            stacks = [i['StackName'] for i in res['Stacks']]
-            if os.environ["quick_connects_name"] in stacks:
-                res = cfm_client.describe_stacks(
-                    StackName=os.environ["quick_connects_name"])
-                status = res['Stacks'][0]['StackStatus']
-                if status == success_status:
-                    st.success(f'{operation} complete!')
-                    break
-                elif status in failure_statuses:
-                    st.error(
-                        f'{operation} failed, please check CloudFormation event for detailed messages.')
-                    break
-    except Exception as e:
-        st.error(f'{operation} Failed: {str(e)}')
-
-
-def deploy_cdk_stack():
-    run_subprocess(['cdk', 'deploy'])
-    st.write('CDK stack initialized...........')
-    time.sleep(5)
-    with st.spinner('Deploying......'):
-        wait_for_stack_operation('Deploy', 'CREATE_COMPLETE', [
-                                 'CREATE_FAILED', 'ROLLBACK_COMPLETE'])
-
-
-def destroy_cdk_stack():
-    run_subprocess(['cdk', 'destroy', '--force'])
-    st.write('Destroying CDK stack...........')
-    time.sleep(5)
-    with st.spinner('Destroying......'):
-        wait_for_stack_operation(
-            'Destroy', 'DELETE_COMPLETE', ['DELETE_FAILED'])
+        st.write('Destroying CDK stack...........')
+        time.sleep(5)
+        with st.spinner('Destroying......'):
+            cfm_client = boto3.client("cloudformation")
+            try:
+                while True:
+                    time.sleep(5)
+                    res = cfm_client.describe_stacks()
+                    stacks = [i['StackName'] for i in res['Stacks']]
+                    if os.environ["quick_connects_name"] not in stacks:
+                        st.success('Destroy complete!')
+                        break
+                    else:
+                        res = cfm_client.describe_stacks(
+                            StackName=os.environ["quick_connects_name"])
+                        status = res['Stacks'][0]['StackStatus']
+                        if status == 'DELETE_FAILED':
+                            st.error(
+                                'Destroy failed, please check CloudFormation event for detailed messages.')
+                            break
+                        else:
+                            continue
+            except Exception as e:
+                st.error('Failed')
 
 # CDK Stack definition
 
